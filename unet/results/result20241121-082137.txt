@@ -1,0 +1,47 @@
+[epoch: 0]
+train_loss: 1.17414699
+lr: 0.01000000
+dice coefficient: 0.02640321
+global correct: 85.14
+average row correct: ['97.20', '2.50']
+IoU: ['85.09', '2.10']
+mean IoU: 43.60
+
+[epoch: 1]
+train_loss: 0.96953886
+lr: 0.00771890
+dice coefficient: 0.01292295
+global correct: 85.79
+average row correct: ['98.16', '1.03']
+IoU: ['85.78', '0.92']
+mean IoU: 43.35
+
+[epoch: 2]
+train_loss: 0.86350930
+lr: 0.00535887
+dice coefficient: 0.00599982
+global correct: 86.30
+average row correct: ['98.84', '0.35']
+IoU: ['86.29', '0.32']
+mean IoU: 43.31
+
+[epoch: 3]
+train_loss: 0.77844688
+lr: 0.00287175
+dice coefficient: 0.02720644
+global correct: 86.62
+average row correct: ['99.02', '1.58']
+IoU: ['86.59', '1.48']
+mean IoU: 44.04
+
+[epoch: 4]
+train_loss: 0.73612989
+lr: 0.00000000
+dice coefficient: 0.11219092
+global correct: 87.27
+average row correct: ['99.00', '6.84']
+IoU: ['87.16', '6.41']
+mean IoU: 46.78
+
+best_epoch: 4
+training time 0:00:37
