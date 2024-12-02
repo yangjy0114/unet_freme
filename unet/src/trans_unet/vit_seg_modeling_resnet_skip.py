@@ -140,21 +140,46 @@ class ResNetV2(nn.Module):
         ]))
 
     def forward(self, x):
+        # 存放每个下采样阶段的feature map
         features = []
-        b, c, in_size, _ = x.size()
+        b, c, in_size_H, in_size_W = x.size()
+        print('x shape:', x.size())
+        # root：通道倍增到64并且高宽减半
         x = self.root(x)
         features.append(x)
         x = nn.MaxPool2d(kernel_size=3, stride=2, padding=0)(x)
         for i in range(len(self.body)-1):
+            # 选第i个block来通过x
             x = self.body[i](x)
-            right_size = int(in_size / 4 / (i+1))
-            if x.size()[2] != right_size:
-                pad = right_size - x.size()[2]
-                assert pad < 3 and pad > 0, "x {} should {}".format(x.size(), right_size)
-                feat = torch.zeros((b, x.size()[1], right_size, right_size), device=x.device)
+            print('x shape:', x.shape)
+
+            """
+            疑似没有比较算pad
+
+            # print('in_size_H:', in_size_H)
+            # print('in_size_W_:', in_size_W)
+            # in_size / 4是因为root的stride=2而且有一个stride=2的pooling，后面疑似有点问题
+            right_size_H = int(in_size_H / 4 / (i+1))
+            right_size_W = int(in_size_W / 4 / (i+1))
+            print('right_size_H:', right_size_H)
+            print('right_size_W:', right_size_W)
+            if x.size()[2] != right_size_H or x.size()[3] != right_size_W:
+                # 疑似有点问题，pad没考虑负数
+                # 这行代码断言填充大小 pad 在1到3之间。尺寸差异应该是小的
+                pad_H = abs(right_size_H - x.size()[2])
+                print('pad_H:', pad_H)
+                assert 3 >= pad_H >= 0, "x.size_H {} should {}".format(x.size(), right_size_H)
+                pad_W = abs(right_size_W - x.size()[3])
+                print('pad_W:', pad_W)
+                assert 3 >= pad_W >= 0, "x.size_W {} should {}".format(x.size(), right_size_W)
+                # 如果需要填充，则创建一个新的全零张量 feat，其尺寸为 (b, x.size()[1], right_size, right_size)
+                feat = torch.zeros((b, x.size()[1], right_size_H, right_size_W), device=x.device)
                 feat[:, :, 0:x.size()[2], 0:x.size()[3]] = x[:]
             else:
                 feat = x
-            features.append(feat)
+            """
+
+            features.append(x)
         x = self.body[-1](x)
+        print('x shape:', x.shape)
         return x, features[::-1]

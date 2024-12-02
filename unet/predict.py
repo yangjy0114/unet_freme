@@ -1,3 +1,4 @@
+import argparse
 import os
 import time
 
@@ -5,9 +6,7 @@ import torch
 from torchvision import transforms
 import numpy as np
 from PIL import Image
-
-from src import UNet
-
+from src.trans_unet.vit_seg_modeling import VisionTransformer, CONFIGS
 
 def time_synchronized():
     torch.cuda.synchronize() if torch.cuda.is_available() else None
@@ -16,7 +15,7 @@ def time_synchronized():
 
 def main():
     classes = 1  # exclude background
-    weights_path = "./save_weights/best_model.pth"
+    weights_path = "./save_weights/20241202-192853/best_model.pth"
     img_path = "./DRIVE/test/images/01_test.tif"
     roi_mask_path = "./DRIVE/test/mask/01_test_mask.gif"
     assert os.path.exists(weights_path), f"weights {weights_path} not found."
@@ -30,8 +29,34 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("using {} device.".format(device))
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_classes', type=int,
+                        default=2, help='output channel of network')
+    parser.add_argument('--img_size', type=int,
+                        default=224, help='input patch size of network input')
+    parser.add_argument('--n_skip', type=int,
+                        default=3, help='using number of skip-connect, default is num')
+    parser.add_argument('--vit_name', type=str,
+                        default='R50-ViT-B_16', help='select one vit model')
+    parser.add_argument('--vit_patches_size', type=int,
+                        default=16, help='vit_patches_size, default is 16')
+    args = parser.parse_args()
+
+    config_vit = CONFIGS[args.vit_name]
+    config_vit.n_classes = args.num_classes
+    config_vit.n_skip = args.n_skip
+    config_vit.pretrained_path = '../../project_TransUNet/model/vit_checkpoint/imagenet21k/R50+ViT-B_16.npz'
+    if args.vit_name.find('R50') != -1:
+        config_vit.patches.grid = (
+        int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
+    net = VisionTransformer(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cuda()
+    net.load_from(weights=np.load(config_vit.pretrained_path))
+
+
+
+
     # create model
-    model = UNet(in_channels=3, num_classes=classes+1, base_c=32)
+    model = net
 
     # load weights
     model.load_state_dict(torch.load(weights_path, map_location='cpu')['model'])

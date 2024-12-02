@@ -40,7 +40,7 @@ class Up(nn.Module):
     def forward(self, x1: torch.Tensor, x2: torch.Tensor) -> torch.Tensor:
         x1 = self.up(x1)  # x1：上一层传来的tensor，还没增加宽高，x2：跳跃连接传来的
 
-        # 这以内的步骤是为了防止下采样的过程中高宽向下取整，与上采样过程中的不一样
+        # 为了防止下采样的过程中高宽向下取整，与上采样过程中的不一样
         # [N, C, H, W]
         # 计算y和x轴上两者的大小差值
         diff_y = x2.size()[2] - x1.size()[2]
@@ -49,7 +49,6 @@ class Up(nn.Module):
         # padding_left, padding_right, padding_top, padding_bottom
         x1 = F.pad(x1, [diff_x // 2, diff_x - diff_x // 2,
                         diff_y // 2, diff_y - diff_y // 2])
-        # 这以内的步骤是为了防止下采样的过程中高宽向下取整，与上采样过程中的不一样
 
         x = torch.cat([x2, x1], dim=1)
         x = self.conv(x)
